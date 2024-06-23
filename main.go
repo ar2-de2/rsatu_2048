@@ -5,7 +5,10 @@ import (
 	"math/rand"
 	"strings"
 
+	"./dbresult"
+
 	"github.com/eiannone/keyboard"
+	"github.com/jmoiron/sqlx"
 )
 
 type Output interface {
@@ -183,6 +186,33 @@ func (g *_2048) getZeroLCList() [][]int {
 }
 
 func main() {
+	db, err := sqlx.Open("sqlite3", "game.db")
+	if err != nil {
+		fmt.Println("Error opening database:", err)
+		return
+	}
+	defer db.Close()
+
+	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS game_results (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    datetime INTEGER,
+    score INTEGER,
+    moves INTEGER,
+    username TEXT
+    )`)
+	if err != nil {
+		fmt.Println("Error creating table:", err)
+		return
+	}
+
+	result, err := dbresult.NewGameResult(db, 10, 20, "test")
+	if err != nil {
+		fmt.Println("Error inserting data:", err)
+		return
+	}
+
+	fmt.Println(result)
+
 	game := _2048{output: &ConsoleOutput{}}
 	game.Init()
 	if err := keyboard.Open(); err != nil {
