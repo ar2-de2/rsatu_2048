@@ -1,52 +1,56 @@
 package dbresult
 
 import (
-	"database/sql/driver"
-	"fmt"
-	"time"
+        "database/sql/driver"
+        "time"
 
-	"github.com/jmoiron/sqlx"
-	_ "github.com/mattn/go-sqlite3"
+        "github.com/jmoiron/sqlx"
+        _ "github.com/mattn/go-sqlite3"
 )
 
 type GameResult struct {
-	ID       int
-	DateTime UnixTimestamp
-	Score    int
-	Moves    int
-	Username string
+        ID       int
+        DateTime UnixTimestamp
+	Size     int
+        Score    int
+        Moves    int
+        Username string
+}
+
+func (gr *GameResult) Save(db *sqlx.DB) error {
+        insertQuery := "INSERT INTO game_results (datetime, size, score, moves, username) VALUES (:datetime, :size, :score, :moves, :username)"
+        tx := db.MustBegin()
+        tx.NamedExec(insertQuery, gr)
+        err := tx.Commit()
+        if err != nil {
+                return err
+        }
+        return nil
 }
 
 type UnixTimestamp time.Time
 
 func (ut *UnixTimestamp) Scan(value interface{}) error {
-	t, ok := value.(int64)
-	if !ok {
-		return fmt.Errorf("could not convert value to int64")
-	}
-	*ut = UnixTimestamp(time.Unix(t, 0))
-	return nil
+        t := value.(int64)
+        *ut = UnixTimestamp(time.Unix(t, 0))
+        return nil
 }
 
 func (ut UnixTimestamp) Value() (driver.Value, error) {
-	return time.Time(ut).Unix(), nil
+        return time.Time(ut).Unix(), nil
 }
 
-func NewGameResult(db *sqlx.DB, score int, moves int, username string) (*GameResult, error) {
-	result := &GameResult{
-		DateTime: UnixTimestamp(time.Now()),
-		Score:    score,
-		Moves:    moves,
-		Username: username,
-	}
-
-	insertQuery := "INSERT INTO game_results (datetime, score, moves, username) VALUES (:datetime, :score, :moves, :username)"
-	tx := db.MustBegin()
-	tx.NamedExec(insertQuery, result)
-	err := tx.Commit()
-	if err != nil {
-		return nil, err
-	}
-
-	return result, nil
+func newGameResult(db *sqlx.DB, size int, score int, moves int, username string) error {
+        result := &GameResult{
+                DateTime: UnixTimestamp(time.Now()),
+		Size:     size,
+                Score:    score,
+                Moves:    moves,
+                Username: username,
+        }
+        err := result.Save(db)
+        if err != nil {
+                return err
+        }
+        return nil
 }
