@@ -194,12 +194,12 @@ func main() {
 	defer db.Close()
 
 	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS game_results (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    datetime INTEGER,
-    score INTEGER,
-    moves INTEGER,
-    username TEXT
-    )`)
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		datetime INTEGER,
+		score INTEGER,
+		moves INTEGER,
+		username TEXT
+	)`)
 	if err != nil {
 		fmt.Println("Error creating table:", err)
 		return
