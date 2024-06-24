@@ -1,0 +1,10 @@
+version: "3"
+services:
+  rsatu_2048:
+    container_name: rsatu_2048
+    build:
+      context: .
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./sqlite:/opt/rsatu_2048/sqlite
